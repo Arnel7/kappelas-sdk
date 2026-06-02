@@ -27,6 +27,7 @@ Build bots and personal automations with full type safety and IDE autocomplete â
     - [Chat member management](#chat-member-management-admin-only)
     - [Invite links (admin only)](#invite-links-admin-only)
     - [getMyGroups](#chatsgetmygroups--promisegetmygroupsresult)
+  - [communities](#communities)
   - [webhooks](#webhooks)
   - [profile](#profile)
 - [Groups & channels](#groups--channels)
