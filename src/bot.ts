@@ -276,4 +276,22 @@ export class KappelaBot extends EventEmitter {
   getStatus(): Promise<{ paused: boolean }> {
     return this.http.post(`${this.base}/getBotStatus`, {})
   }
+
+  /**
+   * Pause this bot in ONE conversation only (the bot must be a participant).
+   * The bot stops receiving messages from that conversation, while it keeps
+   * working in all its other chats. Unlike {@link pause}, this is scoped to a
+   * single conversation.
+   *
+   * @example
+   * await bot.pauseInChat(chatId)  // bot goes silent in this chat only
+   */
+  pauseInChat(chatId: number): Promise<{ done: boolean }> {
+    return this.http.post(`${this.base}/pauseBotInChat`, { chat_id: chatId })
+  }
+
+  /** Resume this bot in a conversation after {@link pauseInChat}. */
+  resumeInChat(chatId: number): Promise<{ done: boolean }> {
+    return this.http.post(`${this.base}/resumeBotInChat`, { chat_id: chatId })
+  }
 }

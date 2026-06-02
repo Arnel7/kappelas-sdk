@@ -126,6 +126,18 @@ await bot.resume()                // → { paused: false }
 await bot.getStatus()             // → { paused: boolean }
 ```
 
+To pause only in ONE conversation (e.g. you take over a single chat while the AI keeps handling the rest):
+
+```ts
+// Personal automation, scoped to one chat
+await me.pauseAutomationInChat(chatId)    // → { done: true }
+await me.resumeAutomationInChat(chatId)   // → { done: true }
+
+// Bot, scoped to one chat
+await bot.pauseInChat(chatId)             // → { done: true }
+await bot.resumeInChat(chatId)            // → { done: true }
+```
+
 ---
 
 ## JavaScript support & autocomplete

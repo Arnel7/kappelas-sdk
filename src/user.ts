@@ -180,4 +180,24 @@ export class KappelaUser extends EventEmitter {
   getAutomationStatus(): Promise<{ automations_paused: boolean }> {
     return this.http.post(`${this.base}/getAutomationStatus`, {})
   }
+
+  /**
+   * Pause your personal automations in ONE conversation only.
+   *
+   * Use this to take over a single chat (e.g. you start replying to X yourself):
+   * your AI stops receiving messages from that conversation, while it keeps
+   * handling all your other chats. Unlike {@link pauseAutomations}, this is scoped
+   * to a single conversation.
+   *
+   * @example
+   * await me.pauseAutomationInChat(chatId)  // AI goes silent in this chat only
+   */
+  pauseAutomationInChat(chatId: number): Promise<{ done: boolean }> {
+    return this.http.post(`${this.base}/pauseAutomationInChat`, { chat_id: chatId })
+  }
+
+  /** Resume your personal automations in a conversation after {@link pauseAutomationInChat}. */
+  resumeAutomationInChat(chatId: number): Promise<{ done: boolean }> {
+    return this.http.post(`${this.base}/resumeAutomationInChat`, { chat_id: chatId })
+  }
 }
