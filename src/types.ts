@@ -534,3 +534,170 @@ export type KappelaWireEvent =
   | WSMessageEvent
   | WSCallbackQueryEvent
   | { type: string; data: unknown }
+
+// ─── Communities ───────────────────────────────────────────────────────────────
+
+/** Résultat générique des actions communautés sans corps (204). */
+export interface DoneResult { done?: boolean; pending?: boolean }
+
+export interface Community {
+  id:                       number
+  name:                     string
+  description:              string | null
+  avatar_url:               string | null
+  created_by:               string
+  /** Canal « Annonces » obligatoire de la communauté. */
+  announcement_channel_id:  number | null
+  /** `true` = adhésion sur autorisation (demande requise). */
+  requires_approval:        boolean
+  /** ISO 8601. */
+  created_at:               string
+  /**
+   * Rôle du bot/user DANS LA COMMUNAUTÉ (`"member"` | `"admin"`).
+   * Renseigné par `communities.list()` uniquement.
+   *
+   * ⚠️ Nuance : c'est le rôle dans la COMMUNAUTÉ. Être admin d'un GROUPE rattaché
+   * à la communauté n'implique PAS d'être admin de la communauté (portées distinctes).
+   */
+  role?:                    'member' | 'admin'
+}
+
+export interface CommunityMember {
+  community_id: number
+  user_id:      string
+  role:         'member' | 'admin'
+  /** ISO 8601. */
+  joined_at:    string
+}
+
+/** Groupe lié à une communauté, avec le statut du demandeur courant. */
+export interface CommunityGroup {
+  id:                 number
+  type:               string
+  title:              string | null
+  avatar_url?:        string | null
+  joined:             boolean
+  pending:            boolean
+  participants_count: number
+  [key: string]:      unknown
+}
+
+export interface CommunityDetail {
+  community: Community
+  groups:    CommunityGroup[]
+  members:   CommunityMember[]
+}
+
+export interface CommunityInvite {
+  code:         string
+  community_id: number
+  created_by:   string
+  /** `0` = illimité, `1`+ = limité. */
+  max_uses:     number
+  use_count:    number
+  /** ISO 8601 ou `null` si permanent. */
+  expires_at:   string | null
+  /** ISO 8601 ou `null` si actif. */
+  revoked_at:   string | null
+  created_at:   string
+}
+
+export interface CommunityJoinRequest {
+  id:                    number
+  community_id:          number
+  user_id:               string
+  status:                string
+  created_at:            string
+  /** Enrichi côté serveur. */
+  requester_name?:       string
+  requester_avatar_url?: string | null
+}
+
+export interface CommunityGroupRequest {
+  id:              number
+  community_id:    number
+  conversation_id: number
+  group_name:      string
+  requested_by:    string
+  status:          string
+  created_at:      string
+}
+
+export interface GetMyCommunitiesResult { communities: Community[] }
+export interface GetCommunityInviteLinksResult { invites: CommunityInvite[] }
+
+export interface CreateCommunityParams {
+  name:              string
+  description?:      string
+  avatar_url?:       string
+  requires_approval?: boolean
+}
+
+export interface GetCommunityParams { community_id: number }
+export interface LeaveCommunityParams { community_id: number }
+export interface CommunityInviteCodeParams { code: string }
+
+export interface UpdateCommunityParams {
+  community_id:             number
+  name?:                    string
+  description?:             string | null
+  avatar_url?:              string | null
+  announcement_channel_id?: number | null
+  requires_approval?:       boolean
+}
+
+/** Aperçu public d'une communauté via un lien d'invitation. */
+export interface CommunityInvitePreview {
+  code:           string
+  community_id:   number
+  community_name: string
+  member_count:   number
+  expires_at:     string | null
+  avatar_url:     string | null
+  description:    string | null
+}
+
+export interface AddCommunityMemberParams {
+  community_id: number
+  user_id:      string
+  /** Défaut `"member"`. */
+  role?:        'member' | 'admin'
+}
+
+export interface PromoteCommunityMemberParams {
+  community_id: number
+  user_id:      string
+  role:         'member' | 'admin'
+}
+
+export interface BanCommunityMemberParams {
+  community_id: number
+  user_id:      string
+}
+
+export interface CreateCommunityInviteLinkParams {
+  community_id: number
+  /** `0` = illimité (défaut), `1`+ = limité. */
+  max_uses?:    number
+  expires_in?:  '1h' | '24h' | '7d' | '30d' | 'never'
+}
+
+export interface RevokeCommunityInviteLinkParams {
+  community_id: number
+  code:         string
+}
+
+export interface CommunityRequestActionParams {
+  community_id: number
+  request_id:   number
+}
+
+export interface AddCommunityGroupParams {
+  community_id:    number
+  conversation_id: number
+}
+
+export interface RemoveCommunityGroupParams {
+  community_id:    number
+  conversation_id: number
+}

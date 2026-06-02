@@ -43,6 +43,15 @@ export type {
   RevokeChatInviteLinkParams, RevokeChatInviteLinkResult,
   // getMyGroups
   BotGroupEntry, GetMyGroupsResult,
+  // Communities
+  Community, CommunityMember, CommunityGroup, CommunityDetail,
+  CommunityInvite, CommunityInvitePreview, CommunityJoinRequest, CommunityGroupRequest,
+  DoneResult, GetMyCommunitiesResult, GetCommunityInviteLinksResult,
+  CreateCommunityParams, UpdateCommunityParams, GetCommunityParams, LeaveCommunityParams,
+  CommunityInviteCodeParams,
+  AddCommunityMemberParams, PromoteCommunityMemberParams, BanCommunityMemberParams,
+  CreateCommunityInviteLinkParams, RevokeCommunityInviteLinkParams,
+  CommunityRequestActionParams, AddCommunityGroupParams, RemoveCommunityGroupParams,
   // Events
   CallbackQuery,
   FileInput, KappelaWireEvent, WSMessageEvent, WSCallbackQueryEvent,

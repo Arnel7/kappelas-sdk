@@ -5,6 +5,7 @@ import { MessagesResource } from './resources/messages.js'
 import { ChatsResource }    from './resources/chats.js'
 import { WebhooksResource } from './resources/webhooks.js'
 import { BotProfileResource } from './resources/profile.js'
+import { CommunitiesResource } from './resources/communities.js'
 import type { Message, MessageType, CallbackQuery, KappelaWireEvent, SendMessageParams, SendResult } from './types.js'
 import { toWsUrl } from './util.js'
 
@@ -145,6 +146,9 @@ export class KappelaBot extends EventEmitter {
   /** Read bot profile. */
   readonly profile: BotProfileResource
 
+  /** Manage communities (members, roles, invites, requests). */
+  readonly communities: CommunitiesResource
+
   private http: HttpClient
   private ws:   WSClient
   private base: string
@@ -163,10 +167,11 @@ export class KappelaBot extends EventEmitter {
       opts.wsMaxRetries,
     )
 
-    this.messages = new MessagesResource(this.http, this.base)
-    this.chats    = new ChatsResource(this.http, this.base)
-    this.webhooks = new WebhooksResource(this.http, this.base)
-    this.profile  = new BotProfileResource(this.http, this.base)
+    this.messages    = new MessagesResource(this.http, this.base)
+    this.chats       = new ChatsResource(this.http, this.base)
+    this.webhooks    = new WebhooksResource(this.http, this.base)
+    this.profile     = new BotProfileResource(this.http, this.base)
+    this.communities = new CommunitiesResource(this.http, this.base)
 
     // Forward WS events to this emitter
     this.ws.on('raw',          (e)              => dispatchWireEvent(this, e))

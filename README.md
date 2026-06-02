@@ -133,6 +133,7 @@ const bot = new KappelaBot({ token: '...' })
 bot.reply(msg, 'text')   // → shorthand for bot.messages.send with chat_id + reply_to_id pre-filled
 bot.messages.   // → send, sendPhoto, sendVideo, sendAudio, sendDocument, sendCarousel, edit, sendTyping, delete
 bot.chats.      // → list, iterate, getMyGroups, addMember, banMember, leaveChat, promoteMember, getAdministrators, getMember, createInviteLink, createSingleUseInviteLink, getInviteLinks, revokeInviteLink
+bot.communities. // → list, listAdmin, get, create, update, delete, join, addMember, promoteMember, banMember, leave, createInviteLink, getInviteLinks, revokeInviteLink, previewInvite, acceptInvite, getJoinRequests, approveJoinRequest, rejectJoinRequest, getGroupRequests, approveGroupRequest, rejectGroupRequest, addGroup, removeGroup
 bot.webhooks.   // → set, getInfo, delete
 bot.profile.    // → get
 
@@ -776,6 +777,83 @@ interface BotGroupEntry {
 ```
 
 > Only groups and channels are returned — private chats never appear.
+
+---
+
+### `communities`
+
+A **community** groups several chats (groups/channels) under one umbrella, with its own
+admins and a mandatory *Announcements* channel. A bot administers a community **only if it
+is admin of that community**.
+
+> ⚠️ **Scopes are distinct.** Being admin of a *group* attached to a community does **not**
+> make you admin of the *community*. `community.role` is the role **in the community**;
+> a group's `bot_role` (`chats.getMyGroups`) is the role **in that group**.
+
+#### Making someone (or a bot) a community admin
+
+A user and a bot share the same `user_id`, so the **same flow works for both** — and it is
+two steps: **add as member first, then promote**.
+
+```ts
+// 1) add as member   2) promote to community admin
+await bot.communities.addMember({ community_id: 7, user_id: '<uuid or bot_user_id>', role: 'member' })
+await bot.communities.promoteMember({ community_id: 7, user_id: '<uuid>', role: 'admin' })
+```
+
+#### `communities.list()` → `Promise<{ communities: Community[] }>`
+
+Communities the bot is a member of. Each `Community` carries the bot's `role` in it.
+
+```ts
+const { communities } = await bot.communities.list()
+for (const c of communities) console.log(c.id, c.name, '→', c.role) // 'member' | 'admin'
+```
+
+#### `communities.listAdmin()` → `Promise<Community[]>`
+
+Shorthand: only communities where the bot is **community admin** (`role === 'admin'`).
+
+```ts
+const admin = await bot.communities.listAdmin()
+console.log(`Community admin in ${admin.length} community(ies)`)
+```
+
+#### Other methods
+
+```ts
+// CRUD
+await bot.communities.get({ community_id: 7 })          // { community, groups, members }
+await bot.communities.create({ name: 'Devs', requires_approval: true })
+await bot.communities.update({ community_id: 7, description: 'New' })   // admin
+await bot.communities.delete({ community_id: 7 })                       // admin
+await bot.communities.join({ community_id: 7 })   // public → member ; approval → { pending: true }
+
+// Members (admin)
+await bot.communities.addMember({ community_id: 7, user_id: 'u', role: 'member' })
+await bot.communities.promoteMember({ community_id: 7, user_id: 'u', role: 'admin' })
+await bot.communities.banMember({ community_id: 7, user_id: 'u' })
+await bot.communities.leave({ community_id: 7 })
+
+// Invite links (admin)
+const inv = await bot.communities.createInviteLink({ community_id: 7, max_uses: 1, expires_in: '24h' })
+await bot.communities.getInviteLinks({ community_id: 7 })
+await bot.communities.revokeInviteLink({ community_id: 7, code: inv.code })
+await bot.communities.previewInvite({ code: 'aBcD123' })  // public preview
+await bot.communities.acceptInvite({ code: 'aBcD123' })   // bot joins via link
+
+// Join requests — user → community (admin, when requires_approval)
+await bot.communities.getJoinRequests({ community_id: 7 })
+await bot.communities.approveJoinRequest({ community_id: 7, request_id: 3 })
+await bot.communities.rejectJoinRequest({ community_id: 7, request_id: 3 })
+
+// Group requests + linking groups (admin)
+await bot.communities.getGroupRequests({ community_id: 7 })
+await bot.communities.approveGroupRequest({ community_id: 7, request_id: 3 })
+await bot.communities.rejectGroupRequest({ community_id: 7, request_id: 3 })
+await bot.communities.addGroup({ community_id: 7, conversation_id: 42 })     // admin commu + admin group
+await bot.communities.removeGroup({ community_id: 7, conversation_id: 42 })
+```
 
 ---
 
