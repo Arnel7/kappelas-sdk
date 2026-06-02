@@ -254,4 +254,26 @@ export class KappelaBot extends EventEmitter {
   handleWebhook(body: unknown): void {
     dispatchWebhookEvent(this, body)
   }
+
+  /**
+   * Pause this bot. While paused, the bot stops receiving incoming messages
+   * (no WS push, no webhook) and any send call is rejected with `BOT_PAUSED`,
+   * until {@link resume} is called. Lets an owner stop an AI bot on demand.
+   *
+   * @example
+   * await bot.pause()   // the bot goes silent until resumed
+   */
+  pause(): Promise<{ paused: boolean }> {
+    return this.http.post(`${this.base}/pauseBot`, {})
+  }
+
+  /** Resume this bot after {@link pause}. */
+  resume(): Promise<{ paused: boolean }> {
+    return this.http.post(`${this.base}/resumeBot`, {})
+  }
+
+  /** Get whether this bot is currently paused. */
+  getStatus(): Promise<{ paused: boolean }> {
+    return this.http.post(`${this.base}/getBotStatus`, {})
+  }
 }

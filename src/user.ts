@@ -156,4 +156,28 @@ export class KappelaUser extends EventEmitter {
   handleWebhook(body: unknown): void {
     dispatchWireEvent(this, body)
   }
+
+  /**
+   * Pause this account's personal automations.
+   *
+   * While paused, the account stops receiving incoming messages over `/v1/me`
+   * (so an AI auto-responder is never triggered) and any send call is rejected
+   * with `AUTOMATIONS_PAUSED`. Useful when the human owner takes over the chat.
+   *
+   * @example
+   * await me.pauseAutomations()  // the AI stops replying until resumed
+   */
+  pauseAutomations(): Promise<{ automations_paused: boolean }> {
+    return this.http.post(`${this.base}/pauseAutomations`, {})
+  }
+
+  /** Resume this account's personal automations after {@link pauseAutomations}. */
+  resumeAutomations(): Promise<{ automations_paused: boolean }> {
+    return this.http.post(`${this.base}/resumeAutomations`, {})
+  }
+
+  /** Get whether this account's personal automations are currently paused. */
+  getAutomationStatus(): Promise<{ automations_paused: boolean }> {
+    return this.http.post(`${this.base}/getAutomationStatus`, {})
+  }
 }

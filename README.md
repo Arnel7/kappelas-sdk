@@ -15,6 +15,7 @@ Build bots and personal automations with full type safety and IDE autocomplete �
 - [Prerequisites](#prerequisites)
 - [Install](#install)
 - [Quick start](#quick-start)
+- [Pausing automations](#pausing-automations)
 - [JavaScript support & autocomplete](#javascript-support--autocomplete)
 - [Events — WebSocket vs Webhook](#events--websocket-vs-webhook)
   - [Message fields](#message-fields)
@@ -107,6 +108,22 @@ me.on('message', (msg) => {
 })
 
 me.start()
+```
+
+### Pausing automations
+
+Pausing your personal automation makes your account stop receiving incoming messages over `/v1/me`, so an AI auto-responder is never triggered, and any send is rejected with `AUTOMATIONS_PAUSED` — until you resume. Pausing a bot makes it stop receiving incoming messages (no WebSocket push, no webhook) and rejects sends with `BOT_PAUSED` until resumed. This is useful when the human owner wants to take over and stop the AI.
+
+```ts
+// Personal automation
+await me.pauseAutomations()       // → { automations_paused: true }
+await me.resumeAutomations()      // → { automations_paused: false }
+await me.getAutomationStatus()    // → { automations_paused: boolean }
+
+// Bot
+await bot.pause()                 // → { paused: true }
+await bot.resume()                // → { paused: false }
+await bot.getStatus()             // → { paused: boolean }
 ```
 
 ---
