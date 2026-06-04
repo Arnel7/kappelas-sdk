@@ -701,3 +701,69 @@ export interface RemoveCommunityGroupParams {
   community_id:    number
   conversation_id: number
 }
+
+// ─── Stories ─────────────────────────────────────────────────────────────────
+
+export type StoryMediaType = 'image' | 'video' | 'text' | 'poll'
+export type StoryAudience  = 'all' | 'selected' | 'excluded'
+
+export interface Story {
+  id:                 string
+  user_id:            string
+  media_id:           string
+  media_type:         StoryMediaType
+  caption:            string
+  /** ISO 8601 — expiry (stories last 24 h). */
+  expires_at:         string
+  view_count:         number
+  /** ISO 8601. */
+  created_at:         string
+  audience:           StoryAudience
+  audience_user_ids?: string[]
+  /** Enriched on read. */
+  author_name?:       string
+  author_avatar?:     string | null
+  viewed_by_me?:      boolean
+  media_url?:         string | null
+}
+
+export interface StoryView {
+  story_id:       string
+  viewer_id:      string
+  /** ISO 8601. */
+  viewed_at:      string
+  viewer_name?:   string
+  viewer_avatar?: string | null
+}
+
+/** Result of uploading story media (image/video) before creating the story. */
+export interface StoryMediaUpload {
+  media_id:       string
+  url:            string
+  width?:         number
+  height?:        number
+  thumbnail_url?: string
+  medium_url?:    string
+}
+
+export interface StoryPreferences {
+  audience:          StoryAudience
+  audience_user_ids: string[]
+}
+
+export interface CreateStoryParams {
+  /** `image` | `video` need media; `text` | `poll` are caption-only. */
+  type:               StoryMediaType
+  /**
+   * Image/video file or HTTP URL — the SDK uploads it automatically and uses
+   * the resulting media id. Ignored for `text`/`poll`.
+   */
+  media?:             FileInput
+  /** Alternative to `media`: an already-uploaded media id. */
+  media_id?:          string
+  caption?:           string
+  /** `all` (default) | `selected` | `excluded`. */
+  audience?:          StoryAudience
+  /** Required when `audience` is `selected` or `excluded`. */
+  audience_user_ids?: string[]
+}

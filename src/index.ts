@@ -52,6 +52,9 @@ export type {
   AddCommunityMemberParams, PromoteCommunityMemberParams, BanCommunityMemberParams,
   CreateCommunityInviteLinkParams, RevokeCommunityInviteLinkParams,
   CommunityRequestActionParams, AddCommunityGroupParams, RemoveCommunityGroupParams,
+  // Stories
+  Story, StoryView, StoryMediaUpload, StoryPreferences,
+  StoryMediaType, StoryAudience, CreateStoryParams,
   // Events
   CallbackQuery,
   FileInput, KappelaWireEvent, WSMessageEvent, WSCallbackQueryEvent,

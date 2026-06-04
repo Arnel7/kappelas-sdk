@@ -5,8 +5,10 @@ import { MessagesResource } from './resources/messages.js'
 import { ChatsResource }    from './resources/chats.js'
 import { WebhooksResource } from './resources/webhooks.js'
 import { UserProfileResource } from './resources/profile.js'
-import type { Message, CallbackQuery, KappelaWireEvent } from './types.js'
-import { dispatchWireEvent } from './bot.js'
+import { CommunitiesResource } from './resources/communities.js'
+import { StoriesResource } from './resources/stories.js'
+import type { Message, CallbackQuery, KappelaWireEvent, SendMessageParams, SendResult } from './types.js'
+import { dispatchWireEvent, dispatchWebhookEvent } from './bot.js'
 import { toWsUrl } from './util.js'
 
 export interface KappelaUserOptions {
@@ -84,6 +86,12 @@ export class KappelaUser extends EventEmitter {
   /** Read your profile. */
   readonly profile: UserProfileResource
 
+  /** Manage communities (members, roles, invites, requests) as yourself. */
+  readonly communities: CommunitiesResource
+
+  /** Create and manage your stories (24 h éphémères). */
+  readonly stories: StoriesResource
+
   private http: HttpClient
   private ws:   WSClient
   private base  = '/v1/me'
@@ -103,10 +111,12 @@ export class KappelaUser extends EventEmitter {
     const wsPath = `${this.base}/ws?api_key=${opts.apiKey}`
     this.ws = new WSClient(toWsUrl(baseUrl, wsPath), opts.wsMaxRetries)
 
-    this.messages = new MessagesResource(this.http, this.base)
-    this.chats    = new ChatsResource(this.http, this.base)
-    this.webhooks = new WebhooksResource(this.http, this.base)
-    this.profile  = new UserProfileResource(this.http, this.base)
+    this.messages    = new MessagesResource(this.http, this.base)
+    this.chats       = new ChatsResource(this.http, this.base)
+    this.webhooks    = new WebhooksResource(this.http, this.base)
+    this.profile     = new UserProfileResource(this.http, this.base)
+    this.communities = new CommunitiesResource(this.http, this.base)
+    this.stories     = new StoriesResource(this.http, this.base)
 
     // Forward WS events to this emitter
     this.ws.on('raw',          (e)              => dispatchWireEvent(this, e))
@@ -136,6 +146,34 @@ export class KappelaUser extends EventEmitter {
     return this
   }
 
+  /**
+   * Convenience shorthand — send a text reply to a `message` or `callback_query` event
+   * without repeating `chat_id` and `reply_to_id` manually.
+   *
+   * - With a **`Message`** — sets `reply_to_id` automatically (shows a quote banner).
+   * - With a **`CallbackQuery`** — sends to the same chat, no quote banner
+   *   (callback queries have no message ID to quote).
+   *
+   * @example
+   * ```ts
+   * me.on('message', async (msg) => {
+   *   await me.reply(msg, 'Got it! 👋')
+   * })
+   * ```
+   */
+  reply(
+    ctx:     Message | CallbackQuery,
+    text:    string,
+    params?: Omit<SendMessageParams, 'chat_id' | 'text' | 'reply_to_id'>,
+  ): Promise<SendResult> {
+    return this.messages.send({
+      chat_id:     ctx.chat_id,
+      text,
+      reply_to_id: 'id' in ctx ? ctx.id : undefined,
+      ...params,
+    })
+  }
+
   /** `true` if the WebSocket is currently open. */
   get connected(): boolean {
     return this.ws.isConnected()
@@ -154,7 +192,9 @@ export class KappelaUser extends EventEmitter {
    * ```
    */
   handleWebhook(body: unknown): void {
-    dispatchWireEvent(this, body)
+    // Les webhooks Kappela utilisent le format plat (comme pour les bots),
+    // distinct du format enveloppé { type, data } du WebSocket.
+    dispatchWebhookEvent(this, body)
   }
 
   /**

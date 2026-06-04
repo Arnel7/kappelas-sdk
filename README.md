@@ -31,6 +31,7 @@ Build bots and personal automations with full type safety and IDE autocomplete �
   - [communities](#communities)
   - [webhooks](#webhooks)
   - [profile](#profile)
+  - [stories (KappelaUser only)](#stories-kappelauser-only)
 - [Groups & channels](#groups--channels)
   - [Receiving group messages](#receiving-group-messages)
   - [Replying to a message](#replying-to-a-message)
@@ -108,6 +109,19 @@ me.on('message', (msg) => {
 })
 
 me.start()
+```
+
+**`KappelaUser` exposes the same resources as `KappelaBot`** — just replace `bot` with `me`. Everything documented under [API reference](#api-reference) for `bot.messages`, `bot.chats` (including [member management](#chat-member-management-admin-only) and [invite links](#invite-links-admin-only)), `bot.communities`, `bot.webhooks`, `bot.profile` and `bot.reply()` works identically on `me`. In addition, `KappelaUser` has [`me.stories`](#stories-kappelauser-only) (user-only). Collections and Hugging Face credentials are bot-only.
+
+```ts
+// Same API as a bot — acting as yourself
+await me.reply(msg, 'Got it! 👋')
+await me.messages.sendPhoto({ chat_id: 42, photo: 'https://…/pic.jpg' })
+await me.chats.promoteMember({ chat_id: 42, user_id: '<uuid>', role: 'admin' })
+await me.communities.create({ name: 'Devs', requires_approval: true })
+
+// User-only: stories
+await me.stories.create({ type: 'text', caption: 'Hello 👋' })
 ```
 
 ### Pausing automations
@@ -934,6 +948,58 @@ const me = await bot.profile.get()
 // BotProfile  → { user_id, username, is_bot: true, about, description, avatar_url }
 // UserProfile → { id, username, nom, is_bot: false, is_premium, avatar_url, ... }
 ```
+
+---
+
+### `stories` (KappelaUser only)
+
+Create and manage **stories** (ephemeral, 24 h). Available on `KappelaUser` only — their audience is based on your private-conversation contacts.
+
+For **image/video** stories, pass `media` (a file, `Buffer`, `Blob`, or HTTP URL) — the SDK uploads it automatically (like [`messages.sendPhoto`](#messages)) and uses the resulting `media_id`. For **text/poll** stories, no upload is needed. You can also pass a pre-uploaded `media_id` instead of `media`.
+
+```ts
+// Image story — SDK uploads the file, then creates the story
+const story = await me.stories.create({
+  type:    'image',
+  media:   'https://example.com/photo.jpg',  // or Buffer / Blob / { data, filename, contentType }
+  caption: 'Sunset 🌇',
+  audience: 'all',                           // 'all' (default) | 'selected' | 'excluded'
+})
+
+// Text story — no media
+await me.stories.create({ type: 'text', caption: 'Good morning ☀️' })
+
+// Restricted audience
+await me.stories.create({
+  type: 'text', caption: 'Privé',
+  audience: 'selected', audience_user_ids: ['<uuid>'],
+})
+```
+
+| Method | Returns | Description |
+|--------|---------|-------------|
+| `stories.create(params)` | `Promise<Story>` | Create a story. `params.type` ∈ `image\|video\|text\|poll`; `media` (file/URL, uploaded automatically) or `media_id` for image/video; `caption?`, `audience?`, `audience_user_ids?`. |
+| `stories.uploadMedia(input)` | `Promise<StoryMediaUpload>` | Upload story media manually and get a `media_id` (usually unnecessary — `create({ media })` does it). |
+| `stories.list()` | `Promise<Story[]>` | Feed of your contacts' active stories. |
+| `stories.listMine()` | `Promise<Story[]>` | Your own stories. |
+| `stories.get(storyId)` | `Promise<Story>` | A single story (audience-checked server-side). |
+| `stories.delete(storyId)` | `Promise<{ done }>` | Delete one of your stories. |
+| `stories.view(storyId)` | `Promise<{ done }>` | Mark a story as viewed. |
+| `stories.getViewers(storyId)` | `Promise<StoryView[]>` | Who viewed your story (owner only). |
+| `stories.getPreferences()` | `Promise<StoryPreferences>` | Your default audience preference. |
+| `stories.setPreferences(prefs)` | `Promise<{ done }>` | Set your default audience preference. |
+
+```ts
+const mine = await me.stories.listMine()
+for (const s of mine) {
+  console.log(s.id, s.media_type, s.view_count, 'expires', s.expires_at)
+}
+
+const viewers = await me.stories.getViewers(story.id)
+console.log(`${viewers.length} views`)
+```
+
+> **Pause** — while [automations are paused](#pausing-automations), story reads still work but creating/deleting/viewing stories is rejected with `AUTOMATIONS_PAUSED`.
 
 ---
 
