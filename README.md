@@ -974,7 +974,12 @@ await me.stories.create({
   type: 'text', caption: 'Privé',
   audience: 'selected', audience_user_ids: ['<uuid>'],
 })
+
+// Clickable CTA link over the story (text or image)
+await me.stories.create({ type: 'text', caption: 'New drop', link: 'https://shop.example.com', link_label: 'Shop now' })
 ```
+
+> **Link (CTA)** — `link` (+ optional `link_label`) adds a clickable link shown over the story in the Kappela apps. The SDK carries it inside the caption as a JSON envelope (`{ text, link, linkLabel }`); without a link the caption stays plain text.
 
 | Method | Returns | Description |
 |--------|---------|-------------|

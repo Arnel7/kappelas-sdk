@@ -762,6 +762,14 @@ export interface CreateStoryParams {
   /** Alternative to `media`: an already-uploaded media id. */
   media_id?:          string
   caption?:           string
+  /**
+   * Clickable CTA link shown over the story in the Kappela apps. When set, the
+   * SDK encodes the caption as a JSON envelope ({ text, link, linkLabel }) — the
+   * format the apps read (there is no separate backend field).
+   */
+  link?:              string
+  /** Optional label for the CTA link (e.g. "Shop now"). Requires `link`. */
+  link_label?:        string
   /** `all` (default) | `selected` | `excluded`. */
   audience?:          StoryAudience
   /** Required when `audience` is `selected` or `excluded`. */

@@ -26,6 +26,20 @@ import type {
  * // Restrict the audience
  * await me.stories.create({ type: 'text', caption: 'Privé', audience: 'selected', audience_user_ids: ['uuid'] })
  */
+/**
+ * Encode the story caption. When a `link` is provided, the Kappela apps expect
+ * the caption to be a JSON envelope ({ text, link, linkLabel }) — that's how the
+ * clickable CTA link is carried (there is no separate backend field). Without a
+ * link, the caption is sent as plain text (backwards-compatible).
+ * @internal
+ */
+function encodeStoryCaption(params: CreateStoryParams): string | undefined {
+  if (!params.link) return params.caption
+  const env: Record<string, string> = { text: params.caption ?? '', link: params.link }
+  if (params.link_label) env.linkLabel = params.link_label
+  return JSON.stringify(env)
+}
+
 export class StoriesResource {
   constructor(private http: HttpClient, private base: string) {}
 
@@ -33,6 +47,9 @@ export class StoriesResource {
    * Create a story. For `image`/`video`, pass `media` (file/URL) — it is
    * uploaded automatically — or a pre-uploaded `media_id`. For `text`/`poll`,
    * just pass a `caption`.
+   *
+   * Pass `link` (+ optional `link_label`) to attach a clickable CTA link, shown
+   * by the Kappela apps over the story.
    */
   async create(params: CreateStoryParams): Promise<Story> {
     let mediaId = params.media_id
@@ -46,7 +63,7 @@ export class StoriesResource {
     return this.http.post(`${this.base}/createStory`, {
       media_id:          mediaId,
       media_type:        params.type,
-      caption:           params.caption,
+      caption:           encodeStoryCaption(params),
       audience:          params.audience,
       audience_user_ids: params.audience_user_ids,
     })
