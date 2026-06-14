@@ -177,6 +177,8 @@ const bot = new KappelaBot({ token: '...' })
 
 bot.reply(msg, 'text')   // → shorthand for bot.messages.send with chat_id + reply_to_id pre-filled
 bot.messages.   // → send, sendPhoto, sendVideo, sendAudio, sendDocument, sendCarousel, edit, sendTyping, delete
+// Every send/edit/delete/typing method takes EITHER { chat_id } OR { user_id } (see "Recipient").
+// messages.send also takes { action_button } — a copy / link / join button (see "Action button").
 bot.chats.      // → list, iterate, getMyGroups, addMember, banMember, leaveChat, promoteMember, getAdministrators, getMember, createInviteLink, createSingleUseInviteLink, getInviteLinks, revokeInviteLink
 bot.communities. // → list, listAdmin, get, create, update, delete, join, addMember, promoteMember, banMember, leave, createInviteLink, getInviteLinks, revokeInviteLink, previewInvite, acceptInvite, getJoinRequests, approveJoinRequest, rejectJoinRequest, getGroupRequests, approveGroupRequest, rejectGroupRequest, addGroup, removeGroup
 bot.webhooks.   // → set, getInfo, delete
@@ -496,6 +498,9 @@ await me.messages.deleteMessage({ user_id: '…uuid…', message_id: 123 })
 
 #### `messages.sendPhoto(params)` → `Promise<SendMediaResult>`
 
+> Recipient follows the same `chat_id | user_id` rule as `send` — see
+> [Recipient](#recipient--chat_id-or-user_id). Examples below use `chat_id`.
+
 The `photo` field (and `video`, `document`, `audio` on the equivalent methods) accepts:
 
 | Form | Example |
@@ -527,6 +532,8 @@ await bot.messages.sendPhoto({
 Same shape — replace the field name (`video`, `document`, `audio`) with your file or URL.
 
 #### `messages.sendCarousel(params)` → `Promise<SendCarouselResult>`
+
+> Accepts `chat_id` **or** `user_id` (see [Recipient](#recipient--chat_id-or-user_id)).
 
 ```ts
 await bot.messages.sendCarousel({
@@ -576,9 +583,15 @@ bot.on('callback_query', async (cb) => {
 
 #### `messages.edit(params)` → `Promise<EditMessageResult>`
 
+> Identify the chat by `chat_id` **or** `user_id` — with `user_id` the private
+> conversation must already exist (see [Recipient](#recipient--chat_id-or-user_id)).
+
 ```ts
 // Edit text
 await bot.messages.edit({ chat_id: 42, message_id: 123, new_text: 'Updated!' })
+
+// By user_id (private chat must already exist)
+await bot.messages.edit({ user_id: '…uuid…', message_id: 123, new_text: 'Updated!' })
 
 // Edit inline keyboard only
 await bot.messages.edit({
@@ -603,12 +616,16 @@ await bot.messages.edit({
 ```ts
 await bot.messages.sendTyping({ chat_id: 42 })                        // show
 await bot.messages.sendTyping({ chat_id: 42, is_typing: false })      // hide
+await bot.messages.sendTyping({ user_id: cb.sender_id })              // by user_id
 ```
 
 #### `messages.delete(params)` → `Promise<DeleteResult>`
 
+> Identify the chat by `chat_id` **or** `user_id` (see [Recipient](#recipient--chat_id-or-user_id)).
+
 ```ts
 await bot.messages.delete({ chat_id: 42, message_id: 123 })
+await bot.messages.delete({ user_id: '…uuid…', message_id: 123 })
 // → { deleted: true }
 ```
 
