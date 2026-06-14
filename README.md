@@ -50,6 +50,7 @@ Build bots and personal automations with full type safety and IDE autocomplete �
   - [Reply keyboard](#reply-keyboard)
   - [Scroll keyboard](#scroll-keyboard)
   - [Full example](#full-example--all-three-in-one-bot)
+- [Action button](#action-button)
 - [Error handling](#error-handling)
 - [File input](#file-input)
 
@@ -438,6 +439,60 @@ const result = await bot.messages.send({
 })
 // → { message_id: number, created_at: number }
 ```
+
+##### Recipient — `chat_id` *or* `user_id`
+
+Provide **exactly one** recipient. Besides the numeric `chat_id`, you can target a
+user directly by their **`user_id` (UUID)** — the message is routed to your 1-to-1
+private conversation with them, no need to look up the chat first.
+
+```ts
+// By chat id (private, group, or channel)
+await bot.messages.send({ chat_id: 42, text: 'Hello!' })
+
+// By user id — goes to your private chat with that user
+await bot.messages.send({ user_id: 'f19f2127-7892-44a6-bae7-5d2c88ee3b09', text: 'Hello!' })
+```
+
+The two forms are mutually exclusive — TypeScript rejects passing both, or neither:
+
+```ts
+// @ts-expect-error — cannot provide both
+await bot.messages.send({ chat_id: 42, user_id: '…', text: 'x' })
+```
+
+**Behaviour differs by client:**
+
+| Client | `user_id` behaviour |
+|--------|---------------------|
+| **`KappelaBot`** | The private conversation **must already exist**. A bot cannot start a conversation from scratch — sending to a user who never interacted with it fails with `FORBIDDEN`. |
+| **`KappelaUser`** | The private conversation is **created automatically** if it doesn't exist yet (find-or-create). |
+
+```ts
+// KappelaUser — opens the conversation if needed, then sends
+await me.messages.send({ user_id: '…uuid…', text: 'Salut 👋' })
+```
+
+`user_id` works on **all send methods** — `messages.send`, `sendPhoto`, `sendVideo`,
+`sendDocument`, `sendAudio` and `sendCarousel` — same `chat_id | user_id` rule for each:
+
+```ts
+// Media to a user by id — opens the private chat (KappelaUser) / must exist (bot)
+await me.messages.sendPhoto({ user_id: '…uuid…', photo: 'https://…/pic.jpg' })
+await bot.messages.sendCarousel({ user_id: cb.sender_id, carousel: [...] })
+```
+
+`sendTyping`, `editMessage` and `deleteMessage` accept `user_id` too — for `editMessage` /
+`deleteMessage` the conversation must already exist (you're acting on an existing message).
+
+```ts
+await bot.messages.sendTyping({ user_id: cb.sender_id })
+await me.messages.deleteMessage({ user_id: '…uuid…', message_id: 123 })
+```
+
+> The `reply()` shorthand replies into the originating chat, so it takes no recipient — but
+> the event already gives you the sender's UUID via `msg.sender_id` / `cb.sender_id` if you'd
+> rather call `send({ user_id })`.
 
 #### `messages.sendPhoto(params)` → `Promise<SendMediaResult>`
 
@@ -1538,6 +1593,72 @@ bot.on('callback_query', async (cb) => {
 
 bot.start()
 ```
+
+---
+
+## Action button
+
+An **action button** is a single button rendered at the **foot of the message bubble**
+(WhatsApp-style), separate from [keyboards](#keyboards). Unlike inline buttons, it does
+**not** fire a `callback_query` — tapping it performs a client-side action: copy text,
+open a link, or join a chat.
+
+Set it via `action_button` on `messages.send` (text messages only):
+
+```ts
+import type { ActionButton } from '@kappelas/sdk'
+
+await bot.messages.send({
+  chat_id: 42,
+  text: 'Your verification code is 837192',
+  action_button: { label: 'Copy code', type: 'copy_text', value: '837192' },
+})
+```
+
+### Types
+
+| `type` | What a tap does | `value` is… |
+|--------|-----------------|-------------|
+| `copy_text` | Copies `value` to the clipboard | The text to copy (e.g. an **OTP / one-time code**) |
+| `external_link` | Opens `value` in the in-app browser | An external URL (`https://…`) |
+| `internal_link` | Opens `value` as an in-app deep link | An internal Kappela link |
+| `join` | Joins the chat **directly** (no landing screen) | An invite link (group / channel / community) |
+
+```ts
+// One-time code the user copies with a tap
+await bot.messages.send({
+  chat_id, text: 'Code: 412 908',
+  action_button: { label: '📋 Copy code', type: 'copy_text', value: '412908' },
+})
+
+// External link
+await bot.messages.send({
+  chat_id, text: 'Read more on our site',
+  action_button: { label: 'Open website', type: 'external_link', value: 'https://kappelas.com' },
+})
+
+// Internal deep link
+await bot.messages.send({
+  chat_id, text: 'Open your wallet',
+  action_button: { label: 'Open wallet', type: 'internal_link', value: 'kappelas://wallet' },
+})
+
+// Join a group/channel/community in one tap
+await bot.messages.send({
+  chat_id, text: 'Join our community',
+  action_button: { label: 'Join', type: 'join', value: 'https://kappelas.com/invite/aBcD123xyz' },
+})
+```
+
+| Field | Constraints |
+|-------|-------------|
+| `label` | required, 1–100 characters |
+| `value` | required, 1–2048 characters |
+
+> **Precedence** — if you pass both `action_button` and `reply_markup` on the same
+> message, the **`action_button` wins** and the keyboard is ignored. Use one or the other.
+>
+> `action_button` is supported by `messages.send` only — not by media methods or `sendCarousel`.
 
 ---
 

@@ -184,6 +184,52 @@ export interface ScrollKeyboard   { scroll_keyboard:   ScrollKeyboardButton[] }
 
 export type ReplyMarkup = InlineKeyboard | ReplyKeyboard | ScrollKeyboard
 
+// ─── Action button ─────────────────────────────────────────────────────────────
+
+/**
+ * What tapping an {@link ActionButton} does. The meaning of `value` follows the type:
+ *
+ * - `'copy_text'`     — copies `value` to the clipboard (e.g. a one-time code / OTP).
+ * - `'external_link'` — opens `value` (an external URL) in the in-app browser.
+ * - `'internal_link'` — opens `value` as an in-app deep link.
+ * - `'join'`          — `value` is an invite link (group / channel / community);
+ *                       tapping joins directly, without a landing screen.
+ */
+export type ActionButtonType = 'copy_text' | 'external_link' | 'internal_link' | 'join'
+
+/**
+ * A single button rendered at the **foot of the message bubble** (WhatsApp-style),
+ * distinct from inline keyboards. Unlike inline buttons it does not fire a
+ * `callback_query` — it performs a client-side action (copy / open / join).
+ *
+ * Set it via `action_button` on {@link SendMessageParams}. If both `action_button`
+ * and `reply_markup` are provided, **`action_button` takes precedence**.
+ *
+ * @example
+ * // OTP code the user can copy with one tap
+ * await bot.messages.send({
+ *   chat_id: 42,
+ *   text: 'Your verification code is 837192',
+ *   action_button: { label: 'Copy code', type: 'copy_text', value: '837192' },
+ * })
+ *
+ * @example
+ * // External link button
+ * await bot.messages.send({
+ *   chat_id: 42,
+ *   text: 'Read the docs:',
+ *   action_button: { label: 'Open docs', type: 'external_link', value: 'https://kappelas.com/docs' },
+ * })
+ */
+export interface ActionButton {
+  /** Button label shown in the bubble footer (1–100 characters). */
+  label: string
+  /** What the button does — see {@link ActionButtonType}. */
+  type:  ActionButtonType
+  /** The button payload (1–2048 characters); its meaning depends on `type`. */
+  value: string
+}
+
 // ─── Carousel ────────────────────────────────────────────────────────────────
 
 export interface CarouselCard {
@@ -242,11 +288,35 @@ export interface WebhookDeleteResult {
 
 // ─── Method params ───────────────────────────────────────────────────────────
 
-export interface SendMessageParams {
-  chat_id:         number
-  text:            string
-  reply_markup?:   ReplyMarkup
-  reply_to_id?:    number
+/**
+ * Recipient of a text message — provide **exactly one** of:
+ *
+ * - `chat_id` — numeric id of an existing conversation (private, group, or channel).
+ * - `user_id` — UUID of a user; the message is routed to your 1-to-1 private chat
+ *   with them.
+ *
+ * Behaviour of `user_id` differs by client:
+ * - **`KappelaBot`** — the private conversation must already exist; a bot cannot
+ *   start a conversation from scratch (the call fails with `FORBIDDEN`).
+ * - **`KappelaUser`** — the private conversation is created automatically if it
+ *   does not exist yet (find-or-create).
+ *
+ * `user_id` is only supported by `messages.send` (text). Media methods
+ * (`sendPhoto`, `sendVideo`, …) still require `chat_id`.
+ */
+export type SendTarget =
+  | { chat_id: number; user_id?: never }
+  | { user_id: string; chat_id?: never }
+
+export type SendMessageParams = SendTarget & {
+  text:             string
+  reply_markup?:    ReplyMarkup
+  /**
+   * A single foot-of-bubble action button (copy code / open link / join).
+   * Takes precedence over `reply_markup` when both are set. See {@link ActionButton}.
+   */
+  action_button?:   ActionButton
+  reply_to_id?:     number
   delete_previous?: boolean
 }
 
@@ -273,8 +343,7 @@ export type FileInput =
   | Blob
   | { data: Buffer | Uint8Array | Blob; filename?: string; contentType?: string }
 
-export interface SendPhotoParams {
-  chat_id:          number
+export type SendPhotoParams = SendTarget & {
   photo:            FileInput
   caption?:         string
   reply_to_id?:     number
@@ -282,8 +351,7 @@ export interface SendPhotoParams {
   reply_markup?:    ReplyMarkup
 }
 
-export interface SendVideoParams {
-  chat_id:          number
+export type SendVideoParams = SendTarget & {
   video:            FileInput
   caption?:         string
   reply_to_id?:     number
@@ -291,8 +359,7 @@ export interface SendVideoParams {
   reply_markup?:    ReplyMarkup
 }
 
-export interface SendDocumentParams {
-  chat_id:          number
+export type SendDocumentParams = SendTarget & {
   document:         FileInput
   caption?:         string
   reply_to_id?:     number
@@ -300,8 +367,7 @@ export interface SendDocumentParams {
   reply_markup?:    ReplyMarkup
 }
 
-export interface SendAudioParams {
-  chat_id:          number
+export type SendAudioParams = SendTarget & {
   audio:            FileInput
   caption?:         string
   reply_to_id?:     number
@@ -309,8 +375,7 @@ export interface SendAudioParams {
   reply_markup?:    ReplyMarkup
 }
 
-export interface SendCarouselParams {
-  chat_id:               number
+export type SendCarouselParams = SendTarget & {
   text?:                 string
   carousel:              CarouselCard[]
   /**
@@ -336,13 +401,11 @@ export interface SendCarouselParams {
   delete_previous?:      boolean
 }
 
-export interface SendTypingParams {
-  chat_id:    number
+export type SendTypingParams = SendTarget & {
   is_typing?: boolean
 }
 
-export interface DeleteMessageParams {
-  chat_id:    number
+export type DeleteMessageParams = SendTarget & {
   message_id: number
 }
 
@@ -495,8 +558,7 @@ export interface GetMyGroupsResult {
 
 // ─── Edit message ────────────────────────────────────────────────────────────
 
-export interface EditMessageParams {
-  chat_id:        number
+export type EditMessageParams = SendTarget & {
   message_id:     number
   /** New text. Required unless new_extra_data is set (inline keyboard edit). */
   new_text?:      string

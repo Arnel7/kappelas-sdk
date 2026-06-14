@@ -164,7 +164,7 @@ export class KappelaUser extends EventEmitter {
   reply(
     ctx:     Message | CallbackQuery,
     text:    string,
-    params?: Omit<SendMessageParams, 'chat_id' | 'text' | 'reply_to_id'>,
+    params?: Omit<SendMessageParams, 'chat_id' | 'user_id' | 'text' | 'reply_to_id'>,
   ): Promise<SendResult> {
     return this.messages.send({
       chat_id:     ctx.chat_id,

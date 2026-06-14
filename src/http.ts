@@ -199,7 +199,7 @@ export function fileInputToBlob(
 /** Build a multipart FormData for a send-media call. */
 export function buildMediaForm(
   fieldName:        string,
-  chatId:           number,
+  target:           { chat_id?: number; user_id?: string },
   file:             Exclude<FileInput, string>,
   opts: {
     caption?:         string
@@ -211,7 +211,12 @@ export function buildMediaForm(
   const form     = new FormData()
   const [blob, filename] = fileInputToBlob(file, fieldName)
 
-  form.append('chat_id', String(chatId))
+  // Recipient — chat_id takes priority; otherwise route to the user's private chat.
+  if (target.chat_id != null) {
+    form.append('chat_id', String(target.chat_id))
+  } else if (target.user_id) {
+    form.append('user_id', target.user_id)
+  }
   form.append(fieldName, blob, filename)
 
   if (opts.caption)         form.append('caption',         opts.caption)

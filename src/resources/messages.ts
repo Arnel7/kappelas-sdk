@@ -30,7 +30,7 @@ export class MessagesResource {
   async sendPhoto(params: SendPhotoParams): Promise<SendMediaResult> {
     const file = await resolveFileInput(params.photo, 'photo.jpg')
     return this.http.postForm(`${this.base}/sendPhoto`, () =>
-      buildMediaForm('photo', params.chat_id, file, {
+      buildMediaForm('photo', params, file, {
         caption:         params.caption,
         reply_to_id:     params.reply_to_id,
         delete_previous: params.delete_previous,
@@ -43,7 +43,7 @@ export class MessagesResource {
   async sendVideo(params: SendVideoParams): Promise<SendMediaResult> {
     const file = await resolveFileInput(params.video, 'video.mp4')
     return this.http.postForm(`${this.base}/sendVideo`, () =>
-      buildMediaForm('video', params.chat_id, file, {
+      buildMediaForm('video', params, file, {
         caption:         params.caption,
         reply_to_id:     params.reply_to_id,
         delete_previous: params.delete_previous,
@@ -56,7 +56,7 @@ export class MessagesResource {
   async sendDocument(params: SendDocumentParams): Promise<SendMediaResult> {
     const file = await resolveFileInput(params.document, 'document')
     return this.http.postForm(`${this.base}/sendDocument`, () =>
-      buildMediaForm('document', params.chat_id, file, {
+      buildMediaForm('document', params, file, {
         caption:         params.caption,
         reply_to_id:     params.reply_to_id,
         delete_previous: params.delete_previous,
@@ -69,7 +69,7 @@ export class MessagesResource {
   async sendAudio(params: SendAudioParams): Promise<SendMediaResult> {
     const file = await resolveFileInput(params.audio, 'audio.mp3')
     return this.http.postForm(`${this.base}/sendAudio`, () =>
-      buildMediaForm('audio', params.chat_id, file, {
+      buildMediaForm('audio', params, file, {
         caption:         params.caption,
         reply_to_id:     params.reply_to_id,
         delete_previous: params.delete_previous,
@@ -86,7 +86,7 @@ export class MessagesResource {
   /** Show or hide the typing indicator in a chat. */
   sendTyping(params: SendTypingParams): Promise<TypingResult> {
     return this.http.post(`${this.base}/sendTyping`, {
-      chat_id:   params.chat_id,
+      ...params,
       is_typing: params.is_typing ?? true,
     })
   }

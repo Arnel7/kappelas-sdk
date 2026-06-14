@@ -18,6 +18,8 @@ export type {
   // Markup
   ReplyMarkup, InlineKeyboard, ReplyKeyboard, ScrollKeyboard,
   InlineKeyboardButton, ReplyKeyboardButton, ScrollKeyboardButton,
+  // Action button (foot-of-bubble: copy code / open link / join)
+  ActionButton, ActionButtonType,
   // Carousel
   CarouselCard,
   // Webhook
@@ -26,6 +28,7 @@ export type {
   SendResult, SendMediaResult, SendCarouselResult, TypingResult, DeleteResult,
   EditMessageResult, ChatsResult, WebhookSetResult, WebhookDeleteResult,
   // Params
+  SendTarget,
   SendMessageParams, SendPhotoParams, SendVideoParams, SendDocumentParams,
   SendAudioParams, SendCarouselParams, SendTypingParams, DeleteMessageParams,
   EditMessageParams, SetWebhookParams, GetChatsParams,
