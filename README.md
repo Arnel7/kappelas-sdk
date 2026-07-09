@@ -581,6 +581,30 @@ bot.on('callback_query', async (cb) => {
 
 > Quick-reply button clicks also fire `callback_query` — `callback_data` is either the button string or the explicit `callback_data` field.
 
+#### `messages.getFile(mediaId)` → `Promise<GetFileResult>`
+
+Resolve a received message's `media_id` to a short-lived **signed download URL** and file
+metadata (`{ media_id, url, filename, content_type, size_bytes, expires_in }`). The URL
+downloads the file directly — no auth header needed.
+
+```ts
+const file = await bot.messages.getFile(msg.media_id)
+```
+
+#### `messages.downloadFile(mediaId)` → `Promise<Uint8Array>`
+
+Convenience over `getFile`: resolves the `media_id` **and** downloads the raw bytes in one
+call — e.g. to fetch a received voice note and transcribe it (speech-to-text).
+
+```ts
+bot.on('message', async (msg) => {
+  if (msg.type === 'audio' && msg.media_id) {
+    const bytes = await bot.messages.downloadFile(msg.media_id)
+    // → write to disk, or pipe into a speech-to-text API
+  }
+})
+```
+
 #### `messages.edit(params)` → `Promise<EditMessageResult>`
 
 > Identify the chat by `chat_id` **or** `user_id` — with `user_id` the private

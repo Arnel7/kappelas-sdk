@@ -25,7 +25,7 @@ export type {
   // Webhook
   WebhookInfo,
   // Results
-  SendResult, SendMediaResult, SendCarouselResult, TypingResult, DeleteResult,
+  SendResult, SendMediaResult, SendCarouselResult, GetFileResult, TypingResult, DeleteResult,
   EditMessageResult, ChatsResult, WebhookSetResult, WebhookDeleteResult,
   // Params
   SendTarget,

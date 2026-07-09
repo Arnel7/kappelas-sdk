@@ -1,5 +1,6 @@
 import type { HttpClient } from '../http.js'
 import { buildMediaForm, resolveFileInput } from '../http.js'
+import { KappelaError } from '../errors.js'
 import type {
   SendMessageParams,
   SendPhotoParams,
@@ -13,6 +14,7 @@ import type {
   SendResult,
   SendMediaResult,
   SendCarouselResult,
+  GetFileResult,
   TypingResult,
   DeleteResult,
   EditMessageResult,
@@ -99,5 +101,23 @@ export class MessagesResource {
   /** Delete a message sent by this bot/user. */
   delete(params: DeleteMessageParams): Promise<DeleteResult> {
     return this.http.post(`${this.base}/deleteMessage`, params)
+  }
+
+  /** Resolve a media_id to a short-lived signed download URL and file metadata. */
+  getFile(mediaId: string): Promise<GetFileResult> {
+    return this.http.get(`${this.base}/getFile?media_id=${mediaId}`)
+  }
+
+  /** Download the raw bytes of a media file by its media_id (e.g. a received voice note). */
+  async downloadFile(mediaId: string): Promise<Uint8Array> {
+    const file = await this.getFile(mediaId)
+    if (!file.url) {
+      throw new KappelaError('getFile did not return a download URL', 'UPSTREAM_ERROR', 502)
+    }
+    const res = await fetch(file.url)
+    if (!res.ok) {
+      throw new KappelaError(`Failed to download media (HTTP ${res.status})`, 'UPSTREAM_ERROR', res.status)
+    }
+    return new Uint8Array(await res.arrayBuffer())
   }
 }

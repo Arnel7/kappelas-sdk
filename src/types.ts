@@ -264,6 +264,17 @@ export interface SendCarouselResult extends SendResult {
   type: 'carousel'
 }
 
+export interface GetFileResult {
+  media_id:     string
+  /** Short-lived signed download URL (direct download, no auth header needed). */
+  url:          string
+  filename:     string
+  content_type: string
+  size_bytes:   number
+  /** Seconds until `url` expires. */
+  expires_in:   number
+}
+
 export interface ChatsResult {
   chats:    Chat[]
   has_more: boolean
