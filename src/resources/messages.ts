@@ -33,17 +33,17 @@ export class MessagesResource {
    * recipient sees activity during a potentially slow send (photo, video, voice…).
    * Errors are swallowed — a failed ping must never break the actual send.
    */
-  private pingTyping(target: { chat_id?: number; user_id?: string }): void {
+  private pingTyping(target: { chat_id?: number; user_id?: string }, action?: string): void {
     const t: SendTypingParams | null =
-      target.chat_id != null ? { chat_id: target.chat_id, is_typing: true }
-      : target.user_id != null ? { user_id: target.user_id, is_typing: true }
+      target.chat_id != null ? { chat_id: target.chat_id, is_typing: true, action }
+      : target.user_id != null ? { user_id: target.user_id, is_typing: true, action }
       : null
     if (t) void this.sendTyping(t).catch(() => {})
   }
 
   /** Send a photo (image file or HTTP URL). Emits a typing indicator during upload. */
   async sendPhoto(params: SendPhotoParams): Promise<SendMediaResult> {
-    this.pingTyping(params)
+    this.pingTyping(params, 'sending_photo')
     const file = await resolveFileInput(params.photo, 'photo.jpg')
     return this.http.postForm(`${this.base}/sendPhoto`, () =>
       buildMediaForm('photo', params, file, {
@@ -57,7 +57,7 @@ export class MessagesResource {
 
   /** Send a video file or HTTP URL. */
   async sendVideo(params: SendVideoParams): Promise<SendMediaResult> {
-    this.pingTyping(params)
+    this.pingTyping(params, 'sending_video')
     const file = await resolveFileInput(params.video, 'video.mp4')
     return this.http.postForm(`${this.base}/sendVideo`, () =>
       buildMediaForm('video', params, file, {
@@ -71,7 +71,7 @@ export class MessagesResource {
 
   /** Send a document / file or HTTP URL. */
   async sendDocument(params: SendDocumentParams): Promise<SendMediaResult> {
-    this.pingTyping(params)
+    this.pingTyping(params, 'sending_document')
     const file = await resolveFileInput(params.document, 'document')
     return this.http.postForm(`${this.base}/sendDocument`, () =>
       buildMediaForm('document', params, file, {
@@ -85,7 +85,7 @@ export class MessagesResource {
 
   /** Send an audio file or HTTP URL. */
   async sendAudio(params: SendAudioParams): Promise<SendMediaResult> {
-    this.pingTyping(params)
+    this.pingTyping(params, 'recording_audio')
     const file = await resolveFileInput(params.audio, 'audio.mp3')
     return this.http.postForm(`${this.base}/sendAudio`, () =>
       buildMediaForm('audio', params, file, {

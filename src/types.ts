@@ -414,6 +414,13 @@ export type SendCarouselParams = SendTarget & {
 
 export type SendTypingParams = SendTarget & {
   is_typing?: boolean
+  /**
+   * Distinct activity indicator (Telegram-style). When set, the recipient sees
+   * e.g. "recording audio…" instead of "typing…". Sent automatically by the
+   * media send methods. One of: `recording_audio`, `sending_photo`,
+   * `sending_video`, `sending_document`.
+   */
+  action?: string
 }
 
 export type DeleteMessageParams = SendTarget & {
