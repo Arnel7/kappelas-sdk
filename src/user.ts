@@ -151,8 +151,8 @@ export class KappelaUser extends EventEmitter {
    * without repeating `chat_id` and `reply_to_id` manually.
    *
    * - With a **`Message`** — sets `reply_to_id` automatically (shows a quote banner).
-   * - With a **`CallbackQuery`** — sends to the same chat, no quote banner
-   *   (callback queries have no message ID to quote).
+   * - With a **`CallbackQuery`** — quotes the message that carried the button when its
+   *   `message_id` is present (falls back to a plain send otherwise).
    *
    * @example
    * ```ts
@@ -169,7 +169,7 @@ export class KappelaUser extends EventEmitter {
     return this.messages.send({
       chat_id:     ctx.chat_id,
       text,
-      reply_to_id: 'id' in ctx ? ctx.id : undefined,
+      reply_to_id: 'id' in ctx ? ctx.id : (ctx.message_id && ctx.message_id > 0 ? ctx.message_id : undefined),
       ...params,
     })
   }

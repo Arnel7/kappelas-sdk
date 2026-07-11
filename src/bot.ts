@@ -81,6 +81,7 @@ export function dispatchWebhookEvent(emitter: Pick<KappelaBot, 'emit'>, body: un
   if (type === 'callback') {
     const cb: CallbackQuery = {
       chat_id:         p['chat_id']         as number,
+      message_id:      (p['message_id'] as number | null) ?? null,
       sender_id:       p['sender_id']        as string,
       sender_name:     ((p['sender_name'] ?? p['sender_nom']) as string | null) ?? null,
       sender_username: (p['sender_username'] as string | null) ?? null,
@@ -200,8 +201,8 @@ export class KappelaBot extends EventEmitter {
    * without having to repeat `chat_id` and `reply_to_id` manually.
    *
    * - When called with a **`Message`** — sets `reply_to_id` automatically (shows a quote banner).
-   * - When called with a **`CallbackQuery`** — sends to the same chat, no quote banner
-   *   (callback queries have no message ID to quote).
+   * - When called with a **`CallbackQuery`** — quotes the message that carried the
+   *   button when its `message_id` is present (falls back to a plain send otherwise).
    *
    * @example
    * ```ts
@@ -227,7 +228,7 @@ export class KappelaBot extends EventEmitter {
     return this.messages.send({
       chat_id:     ctx.chat_id,
       text,
-      reply_to_id: 'id' in ctx ? ctx.id : undefined,
+      reply_to_id: 'id' in ctx ? ctx.id : (ctx.message_id && ctx.message_id > 0 ? ctx.message_id : undefined),
       ...params,
     })
   }

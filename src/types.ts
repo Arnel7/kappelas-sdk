@@ -587,6 +587,13 @@ export interface EditMessageResult {
 /** Fired when a user clicks an inline button. */
 export interface CallbackQuery {
   chat_id:          number
+  /**
+   * ID of the message that carried the clicked inline keyboard.
+   * Use it with `messages.edit({ message_id })` to update that message
+   * (e.g. swap the buttons), or to `reply()` to it. `null` for older
+   * clients that don't send it.
+   */
+  message_id:       number | null
   /** UUID of the user who clicked the button. */
   sender_id:        string
   /** Display name of the user who clicked (e.g. "Arnel LAWSON"). Null if unresolvable. */
