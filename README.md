@@ -617,7 +617,20 @@ await bot.messages.edit({ chat_id: 42, message_id: 123, new_text: 'Updated!' })
 // By user_id (private chat must already exist)
 await bot.messages.edit({ user_id: '…uuid…', message_id: 123, new_text: 'Updated!' })
 
-// Edit inline keyboard only
+// Edit text AND inline keyboard together — e.g. a menu that ticks the choice on click
+await bot.messages.edit({
+  chat_id:        42,
+  message_id:     123,
+  new_text:       'Tu as choisi : ✅ Oui',
+  new_extra_data: {
+    inline_keyboard: [[
+      { text: '✅ Oui ✓', callback_data: 'yes' },
+      { text: '❌ Non',   callback_data: 'no'  },
+    ]],
+  },
+})
+
+// Edit inline keyboard only — omit new_text to keep the existing text
 await bot.messages.edit({
   chat_id:        42,
   message_id:     123,
@@ -634,6 +647,10 @@ await bot.messages.edit({
 })
 // → { edited: true, message_id: number }
 ```
+
+- Both `new_text` + `new_extra_data` → change the text **and** the keyboard in one edit.
+- Only `new_extra_data` (omit `new_text`) → change the keyboard, **keep** the text.
+- Only `new_text` → change the text, leave the keyboard untouched.
 
 #### `messages.sendTyping(params)` → `Promise<TypingResult>`
 
