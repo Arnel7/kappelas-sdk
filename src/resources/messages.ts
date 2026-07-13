@@ -18,6 +18,8 @@ import type {
   TypingResult,
   DeleteResult,
   EditMessageResult,
+  CloseWebviewParams,
+  CloseWebviewResult,
 } from '../types.js'
 
 export class MessagesResource {
@@ -26,6 +28,20 @@ export class MessagesResource {
   /** Send a text message, with optional buttons. */
   send(params: SendMessageParams): Promise<SendResult> {
     return this.http.post(`${this.base}/sendMessage`, params)
+  }
+
+  /**
+   * Remotely close the in-app WebView opened by an `open_webview` action button on the
+   * recipient's device(s). Use it when the outcome is confirmed server-side (e.g. a payment
+   * webhook) instead of relying on the web page calling `Kappelas.close()`. The event reaches
+   * **all** of the recipient's connected devices (personal real-time channel).
+   *
+   * @example
+   * // After your payment provider confirms the charge:
+   * await bot.messages.closeWebview({ chat_id: 42 })
+   */
+  closeWebview(params: CloseWebviewParams): Promise<CloseWebviewResult> {
+    return this.http.post(`${this.base}/closeWebview`, params)
   }
 
   /**

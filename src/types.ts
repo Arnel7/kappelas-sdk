@@ -195,7 +195,7 @@ export type ReplyMarkup = InlineKeyboard | ReplyKeyboard | ScrollKeyboard
  * - `'join'`          — `value` is an invite link (group / channel / community);
  *                       tapping joins directly, without a landing screen.
  */
-export type ActionButtonType = 'copy_text' | 'external_link' | 'internal_link' | 'join'
+export type ActionButtonType = 'copy_text' | 'external_link' | 'internal_link' | 'join' | 'open_webview'
 
 /**
  * A single button rendered at the **foot of the message bubble** (WhatsApp-style),
@@ -214,11 +214,21 @@ export type ActionButtonType = 'copy_text' | 'external_link' | 'internal_link' |
  * })
  *
  * @example
- * // External link button
+ * // External link button (opens the system browser, leaves the app)
  * await bot.messages.send({
  *   chat_id: 42,
  *   text: 'Read the docs:',
  *   action_button: { label: 'Open docs', type: 'external_link', value: 'https://kappelas.com/docs' },
+ * })
+ *
+ * @example
+ * // In-app WebView (stays inside Kappelas) — ideal for payments. The web page can
+ * // close the sheet itself by calling `Kappelas.close()`, or the bot can close it
+ * // remotely with {@link MessagesResource.closeWebview} (e.g. server-confirmed payment).
+ * await bot.messages.send({
+ *   chat_id: 42,
+ *   text: 'Complete your payment:',
+ *   action_button: { label: '💳 Pay now', type: 'open_webview', value: 'https://pay.example.com/xyz' },
  * })
  */
 export interface ActionButton {
@@ -228,6 +238,18 @@ export interface ActionButton {
   type:  ActionButtonType
   /** The button payload (1–2048 characters); its meaning depends on `type`. */
   value: string
+}
+
+/** Params for {@link MessagesResource.closeWebview}. */
+export interface CloseWebviewParams {
+  /** Conversation whose recipient(s) should have their in-app WebView closed. */
+  chat_id: number
+}
+
+/** Result of {@link MessagesResource.closeWebview}. `sent` = number of recipients notified. */
+export interface CloseWebviewResult {
+  ok:   boolean
+  sent: number
 }
 
 // ─── Carousel ────────────────────────────────────────────────────────────────

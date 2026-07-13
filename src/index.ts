@@ -19,7 +19,7 @@ export type {
   ReplyMarkup, InlineKeyboard, ReplyKeyboard, ScrollKeyboard,
   InlineKeyboardButton, ReplyKeyboardButton, ScrollKeyboardButton,
   // Action button (foot-of-bubble: copy code / open link / join)
-  ActionButton, ActionButtonType,
+  ActionButton, ActionButtonType, CloseWebviewParams, CloseWebviewResult,
   // Carousel
   CarouselCard,
   // Webhook
