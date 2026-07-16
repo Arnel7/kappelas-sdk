@@ -240,6 +240,43 @@ export interface ActionButton {
   value: string
 }
 
+/** Field input kind of a {@link FormField}. */
+export type FormInput = 'single' | 'multi' | 'ranking' | 'text'
+
+/** One field of an interactive {@link Form} card. */
+export interface FormField {
+  /** Question / field label (1–256 characters). */
+  label:        string
+  /** Input kind. `single`/`multi`/`ranking` need `options`; `text` is free text. */
+  input:        FormInput
+  /** Choices (2–12) for `single`/`multi`/`ranking`. Omit for `text`. */
+  options?:     string[]
+  /** Stable key used in the answers map; auto-assigned (`f0`, `f1`, …) if omitted. */
+  id?:          string
+  /** Whether an answer is required. */
+  required?:    boolean
+  /** Hint text for a `text` field. */
+  placeholder?: string
+}
+
+/**
+ * An interactive form card sent inside a message (choices, ranking, free text) with a
+ * submit button. The recipient fills it and taps submit; the answers come back as a
+ * `callback_query` whose `callback_data` is `"form::<json>"` where `<json>` is
+ * `{ "form_id": ..., "answers": { <field id>: [...] } }`. Works in private and group chats.
+ *
+ * Set it via `form` on {@link SendMessageParams}. Takes precedence over `reply_markup`
+ * and `action_button`. `title` ≤ 512 chars, 1–10 `fields`.
+ */
+export interface Form {
+  /** Card title / question (1–512 characters). */
+  title:         string
+  /** 1–10 fields. */
+  fields:        FormField[]
+  /** Submit button label (default `"Envoyer"`). */
+  submit_label?: string
+}
+
 /** Params for {@link MessagesResource.closeWebview}. */
 export interface CloseWebviewParams {
   /** Conversation whose recipient(s) should have their in-app WebView closed. */
@@ -349,6 +386,12 @@ export type SendMessageParams = SendTarget & {
    * Takes precedence over `reply_markup` when both are set. See {@link ActionButton}.
    */
   action_button?:   ActionButton
+  /**
+   * An interactive form card (choices / ranking / free text with a submit button).
+   * Answers return as a `callback_query` (`callback_data` = `"form::<json>"`).
+   * Takes precedence over `reply_markup` and `action_button`. See {@link Form}.
+   */
+  form?:            Form
   reply_to_id?:     number
   delete_previous?: boolean
 }

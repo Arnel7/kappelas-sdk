@@ -20,6 +20,8 @@ export type {
   InlineKeyboardButton, ReplyKeyboardButton, ScrollKeyboardButton,
   // Action button (foot-of-bubble: copy code / open link / join)
   ActionButton, ActionButtonType, CloseWebviewParams, CloseWebviewResult,
+  // Form (interactive card: choices / ranking / free text + submit)
+  Form, FormField, FormInput,
   // Carousel
   CarouselCard,
   // Webhook
